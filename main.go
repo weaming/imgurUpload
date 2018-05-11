@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
+	"sync"
 
 	libfs "github.com/weaming/golib/fs"
 	"github.com/weaming/imgurUpload/command"
@@ -34,17 +36,34 @@ func main() {
 	upload(path)
 }
 
-func upload(path string) (*string, error) {
+func upload(path string) {
 	if strings.HasPrefix(path, "http") {
-		return command.UploadImageFromUrl(path)
+		url, e := command.UploadImageFromPath(path)
+		printResult(path, url, e)
 	} else {
-		return command.UploadImageFromPath(path)
+		if libfs.IsDir(path) {
+			DIR := libfs.NewDir(path)
+			var wg sync.WaitGroup
+			for _, p := range DIR.AbsImages {
+				wg.Add(1)
+				go func(p string) {
+					url, e := command.UploadImageFromPath(p)
+					printResult(p, url, e)
+					wg.Done()
+				}(p)
+			}
+			wg.Wait()
+		} else {
+			url, e := command.UploadImageFromPath(path)
+			printResult(path, url, e)
+		}
 	}
 }
 
-func ExitErr(e error) {
+func printResult(path string, url *string, e error) {
 	if e != nil {
-		fmt.Println(e)
-		os.Exit(1)
+		log.Println(e)
+	} else {
+		log.Println(path, *url)
 	}
 }

@@ -49,6 +49,7 @@ func uploadImageWithBytes(data []byte) (*string, error) {
 func checkUploadResult(bodyPtr *io.ReadCloser) (*string, error) {
 	body := *bodyPtr
 	defer body.Close()
+
 	result := make(map[string]interface{})
 	err := json.NewDecoder(body).Decode(&result)
 	if err != nil {
