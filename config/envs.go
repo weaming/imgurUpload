@@ -15,6 +15,7 @@ func ReadEnvs() *remote.Auth {
 
 	if id == "" || secret == "" {
 		fmt.Println("In order to use imgurUpload, both IMGUR_CLIENT_ID and IMGUR_CLIENT_SECRET should be present in your environment variables.")
+		fmt.Println("And your app redirect url must set to http://127.0.0.1:1024 to receive credentials.")
 		os.Exit(1)
 	}
 
