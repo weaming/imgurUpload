@@ -18,6 +18,8 @@ imgurUpload
 1. `expose IMGUR_CLIENT_ID=<your app client ID>`
 1. `expose IMGUR_CLIENT_SECRET=<your app client secret>`
 
+Command options
+
     Usage of imgurUpload:
       -a	anonymous mode will not upload to your album (default true)
       -p string
