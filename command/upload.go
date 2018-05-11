@@ -18,7 +18,7 @@ import (
 
 var client = &http.Client{}
 
-func uploadImageWithBytes(data []byte) (*string, error) {
+func uploadImageWithBytes(data []byte, anonymous bool) (*string, error) {
 	buffer := new(bytes.Buffer)
 	m := multipart.NewWriter(buffer)
 	label, err := m.CreateFormFile("image", "picture")
@@ -31,12 +31,19 @@ func uploadImageWithBytes(data []byte) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	session := config.GetSession()
-	if session == nil {
-		Config()
-		session = config.GetSession()
+
+	if anonymous {
+		auth := config.ReadEnvs()
+		req.Header.Add("Authorization", "Client-ID "+auth.ID)
+	} else {
+		session := config.GetSession()
+		if session == nil {
+			Config()
+			session = config.GetSession()
+		}
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", session.AccessToken))
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", session.AccessToken))
+
 	req.Header.Set("Content-Type", m.FormDataContentType())
 	res, err := client.Do(req)
 	if err != nil {
@@ -62,7 +69,7 @@ func checkUploadResult(bodyPtr *io.ReadCloser) (*string, error) {
 	return nil, errors.New("Invalid response from remote")
 }
 
-func UploadImageFromPath(path string) (*string, error) {
+func UploadImageFromPath(path string, anonymous bool) (*string, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "Error: Cannot open \"%s\": File does not exist.", path)
 		os.Exit(1)
@@ -74,20 +81,27 @@ func UploadImageFromPath(path string) (*string, error) {
 	}
 	defer file.Close()
 	data, _ := ioutil.ReadAll(file)
-	return uploadImageWithBytes(data)
+	return uploadImageWithBytes(data, anonymous)
 }
 
-func UploadImageFromUrl(imgurl string) (*string, error) {
+func UploadImageFromUrl(imgurl string, anonymous bool) (*string, error) {
 	data := url.Values{}
 	data.Set("image", imgurl)
 
 	req, _ := http.NewRequest("POST", "https://api.imgur.com/3/image", bytes.NewBufferString(data.Encode()))
-	session := config.GetSession()
-	if session == nil {
-		Config()
-		session = config.GetSession()
+
+	if anonymous {
+		auth := config.ReadEnvs()
+		req.Header.Add("Authorization", "Client-ID "+auth.ID)
+	} else {
+		session := config.GetSession()
+		if session == nil {
+			Config()
+			session = config.GetSession()
+		}
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", session.AccessToken))
 	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", session.AccessToken))
+
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	res, err := client.Do(req)
@@ -98,7 +112,7 @@ func UploadImageFromUrl(imgurl string) (*string, error) {
 	return checkUploadResult(&res.Body)
 }
 
-func UploadImageFromStdin() (*string, error) {
+func UploadImageFromStdin(anonymous bool) (*string, error) {
 	data, _ := ioutil.ReadAll(os.Stdin)
-	return uploadImageWithBytes(data)
+	return uploadImageWithBytes(data, anonymous)
 }

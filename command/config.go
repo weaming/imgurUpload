@@ -16,8 +16,8 @@ func Config() (err error) {
 		fmt.Println("Hey! Looks like you're already authenticated!")
 		/*
 			if currentConfig.RefreshToken != "" {
-				config.ReadEnvs()
-				session, err = remote.GetTokenFromRefreshToken(currentConfig.RefreshToken, &config.Auth)
+				auth := config.ReadEnvs()
+				session, err = remote.GetTokenFromRefreshToken(currentConfig.RefreshToken, auth)
 				if err != nil {
 					fmt.Println(err)
 					os.Exit(1)
@@ -28,8 +28,8 @@ func Config() (err error) {
 	}
 
 	if !authed {
-		config.ReadEnvs()
-		session = remote.Authorization(&config.Auth)
+		auth := config.ReadEnvs()
+		session = remote.Authorization(auth)
 	}
 
 	config.SetSession(session)

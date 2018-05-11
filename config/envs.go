@@ -9,7 +9,7 @@ import (
 
 var Auth = remote.Auth{}
 
-func ReadEnvs() {
+func ReadEnvs() *remote.Auth {
 	id := os.Getenv("IMGUR_CLIENT_ID")
 	secret := os.Getenv("IMGUR_CLIENT_SECRET")
 
@@ -20,4 +20,5 @@ func ReadEnvs() {
 
 	Auth.ID = id
 	Auth.Secret = secret
+	return &Auth
 }
