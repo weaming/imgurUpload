@@ -18,6 +18,39 @@ import (
 
 var client = &http.Client{}
 
+type UploadResponse struct {
+	Data struct {
+		ID          string        `json:"id"`
+		Title       interface{}   `json:"title"`
+		Description interface{}   `json:"description"`
+		Datetime    int           `json:"datetime"`
+		Type        string        `json:"type"`
+		Animated    bool          `json:"animated"`
+		Width       int           `json:"width"`
+		Height      int           `json:"height"`
+		Size        int           `json:"size"`
+		Views       int           `json:"views"`
+		Bandwidth   int           `json:"bandwidth"`
+		Vote        interface{}   `json:"vote"`
+		Favorite    bool          `json:"favorite"`
+		Nsfw        interface{}   `json:"nsfw"`
+		Section     interface{}   `json:"section"`
+		AccountURL  interface{}   `json:"account_url"`
+		AccountID   int           `json:"account_id"`
+		IsAd        bool          `json:"is_ad"`
+		InMostViral bool          `json:"in_most_viral"`
+		Tags        []interface{} `json:"tags"`
+		AdType      int           `json:"ad_type"`
+		AdURL       string        `json:"ad_url"`
+		InGallery   bool          `json:"in_gallery"`
+		Deletehash  string        `json:"deletehash"`
+		Name        string        `json:"name"`
+		Link        string        `json:"link"`
+	} `json:"data"`
+	Success bool `json:"success"`
+	Status  int  `json:"status"`
+}
+
 func uploadImageWithBytes(data []byte, anonymous bool) (*string, error) {
 	buffer := new(bytes.Buffer)
 	m := multipart.NewWriter(buffer)
@@ -57,13 +90,15 @@ func checkUploadResult(bodyPtr *io.ReadCloser) (*string, error) {
 	body := *bodyPtr
 	defer body.Close()
 
-	result := make(map[string]interface{})
+	result := UploadResponse{}
 	err := json.NewDecoder(body).Decode(&result)
 	if err != nil {
 		return nil, err
 	}
-	if result["status"].(float64) == 200 {
-		link := result["data"].(map[string]interface{})["link"].(string)
+	fmt.Println(result)
+
+	if result.Status == 200 {
+		link := result.Data.Link
 		return &link, nil
 	}
 	return nil, errors.New("Invalid response from remote")
