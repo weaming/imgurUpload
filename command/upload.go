@@ -95,7 +95,6 @@ func checkUploadResult(bodyPtr *io.ReadCloser) (*UploadResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(result)
 
 	if result.Status == 200 {
 		return &result, nil

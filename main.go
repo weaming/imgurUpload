@@ -13,11 +13,13 @@ import (
 var (
 	path      string
 	anonymous = true
+	log2file  = true
 )
 
 func init() {
 	flag.StringVar(&path, "p", path, "target photo path/directory/url to upload")
 	flag.BoolVar(&anonymous, "a", anonymous, "anonymous mode will not upload to your album")
+	flag.BoolVar(&log2file, "log", log2file, "save upload results to json file")
 	flag.Parse()
 }
 
@@ -53,6 +55,9 @@ func printResult(path string, result *command.UploadResponse, e error) {
 	if e != nil {
 		log.Println(e)
 	} else {
+		if log2file {
+			writeLog("uploaded.json", path, result)
+		}
 		log.Println(path, result.Data.Link)
 	}
 }
