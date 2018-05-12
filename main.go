@@ -27,8 +27,8 @@ func main() {
 
 func upload(path string) {
 	if strings.HasPrefix(path, "http") {
-		url, e := command.UploadImageFromUrl(path, anonymous)
-		printResult(path, url, e)
+		result, e := command.UploadImageFromUrl(path, anonymous)
+		printResult(path, result, e)
 	} else {
 		if libfs.IsDir(path) {
 			DIR := libfs.NewDir(path)
@@ -36,23 +36,23 @@ func upload(path string) {
 			for _, p := range DIR.AbsImages {
 				wg.Add(1)
 				go func(p string) {
-					url, e := command.UploadImageFromPath(p, anonymous)
-					printResult(p, url, e)
+					result, e := command.UploadImageFromPath(p, anonymous)
+					printResult(p, result, e)
 					wg.Done()
 				}(p)
 			}
 			wg.Wait()
 		} else {
-			url, e := command.UploadImageFromPath(path, anonymous)
-			printResult(path, url, e)
+			result, e := command.UploadImageFromPath(path, anonymous)
+			printResult(path, result, e)
 		}
 	}
 }
 
-func printResult(path string, url *string, e error) {
+func printResult(path string, result *command.UploadResponse, e error) {
 	if e != nil {
 		log.Println(e)
 	} else {
-		log.Println(path, *url)
+		log.Println(path, result.Data.Link)
 	}
 }

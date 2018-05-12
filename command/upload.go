@@ -51,7 +51,7 @@ type UploadResponse struct {
 	Status  int  `json:"status"`
 }
 
-func uploadImageWithBytes(data []byte, anonymous bool) (*string, error) {
+func uploadImageWithBytes(data []byte, anonymous bool) (*UploadResponse, error) {
 	buffer := new(bytes.Buffer)
 	m := multipart.NewWriter(buffer)
 	label, err := m.CreateFormFile("image", "picture")
@@ -86,7 +86,7 @@ func uploadImageWithBytes(data []byte, anonymous bool) (*string, error) {
 	return checkUploadResult(&res.Body)
 }
 
-func checkUploadResult(bodyPtr *io.ReadCloser) (*string, error) {
+func checkUploadResult(bodyPtr *io.ReadCloser) (*UploadResponse, error) {
 	body := *bodyPtr
 	defer body.Close()
 
@@ -98,13 +98,12 @@ func checkUploadResult(bodyPtr *io.ReadCloser) (*string, error) {
 	fmt.Println(result)
 
 	if result.Status == 200 {
-		link := result.Data.Link
-		return &link, nil
+		return &result, nil
 	}
 	return nil, errors.New("Invalid response from remote")
 }
 
-func UploadImageFromPath(path string, anonymous bool) (*string, error) {
+func UploadImageFromPath(path string, anonymous bool) (*UploadResponse, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "Error: Cannot open \"%s\": File does not exist.", path)
 		os.Exit(1)
@@ -119,7 +118,7 @@ func UploadImageFromPath(path string, anonymous bool) (*string, error) {
 	return uploadImageWithBytes(data, anonymous)
 }
 
-func UploadImageFromUrl(imgurl string, anonymous bool) (*string, error) {
+func UploadImageFromUrl(imgurl string, anonymous bool) (*UploadResponse, error) {
 	data := url.Values{}
 	data.Set("image", imgurl)
 
@@ -147,7 +146,7 @@ func UploadImageFromUrl(imgurl string, anonymous bool) (*string, error) {
 	return checkUploadResult(&res.Body)
 }
 
-func UploadImageFromStdin(anonymous bool) (*string, error) {
+func UploadImageFromStdin(anonymous bool) (*UploadResponse, error) {
 	data, _ := ioutil.ReadAll(os.Stdin)
 	return uploadImageWithBytes(data, anonymous)
 }
