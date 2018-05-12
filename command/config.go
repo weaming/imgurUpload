@@ -2,37 +2,28 @@ package command
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/weaming/imgurUpload/config"
 	"github.com/weaming/imgurUpload/remote"
 )
 
-func Config() (err error) {
-	currentConfig := config.GetSession()
-	var session *remote.AuthResponse
-	authed := false
+var one = sync.Once{}
 
-	if currentConfig != nil {
-		fmt.Println("Hey! Looks like you're already authenticated!")
-		/*
-			if currentConfig.RefreshToken != "" {
-				auth := config.ReadEnvs()
-				session, err = remote.GetTokenFromRefreshToken(currentConfig.RefreshToken, auth)
-				if err != nil {
-					fmt.Println(err)
-					os.Exit(1)
-				}
-				authed = true
-			}
-		*/
-	}
+func Config() {
+	one.Do(func() {
+		currentConfig := config.GetSession()
+		var session *remote.AuthResponse
 
-	if !authed {
+		// refresh token
+		if currentConfig != nil {
+			fmt.Println("Hey! Looks like you're already authenticated!")
+		}
+
 		auth := config.ReadEnvs()
 		session = remote.Authorization(auth)
-	}
 
-	config.SetSession(session)
-	fmt.Printf("Your credentials is stored to %s. You're now ready to upload gifs!\n", config.SessionFile)
-	return nil
+		config.SetSession(session)
+		fmt.Printf("Your credentials is stored to %s. You're now ready to upload gifs!\n", config.SessionFile)
+	})
 }
