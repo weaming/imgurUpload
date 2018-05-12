@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 	"strings"
 	"sync"
 
@@ -13,14 +14,19 @@ import (
 var (
 	path      string
 	anonymous = true
-	log2file  = true
+	logFile   = "uploaded.json"
 )
 
 func init() {
 	flag.StringVar(&path, "p", path, "target photo path/directory/url to upload")
 	flag.BoolVar(&anonymous, "a", anonymous, "anonymous mode will not upload to your album")
-	flag.BoolVar(&log2file, "log", log2file, "save upload results to json file")
+	flag.StringVar(&logFile, "log", logFile, "log file path to save upload results in json format, will be cover by $IMGUR_LOG_FILE")
 	flag.Parse()
+
+	envLogFile := os.Getenv("IMGUR_LOG_FILE")
+	if envLogFile != "" {
+		logFile = envLogFile
+	}
 }
 
 func main() {
@@ -55,9 +61,7 @@ func printResult(path string, result *command.UploadResponse, e error) {
 	if e != nil {
 		log.Println(e)
 	} else {
-		if log2file {
-			writeLog("uploaded.json", path, result)
-		}
+		writeLog(logFile, path, result)
 		log.Println(path, result.Data.Link)
 	}
 }
